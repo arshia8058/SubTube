@@ -42,7 +42,20 @@
 | ترجمه | Coarena (OpenAI-compatible) · Google Gemini · Google Translate |
 | رابط کاربر | Telegram Bot API |
 
-## شروع سریع
+## شروع سریع — نصب خودکار (پیشنهادی)
+
+یک اسکریپت پایتونی روی کامپیوتر خودتان اجرا می‌شود، توکن کلادفلر را می‌گیرد و
+همه‌چیز (دیتابیس، KV، صف، Worker، سکرت‌ها، وبهوک تلگرام) را خودش می‌سازد:
+
+```bash
+git clone https://github.com/arshia8058/SubTube.git
+cd SubTube
+python3 installer/install.py
+```
+
+جزئیات و نکات امنیتی: [installer/README_FA.md](installer/README_FA.md)
+
+## شروع سریع — نصب دستی با Wrangler
 
 ```bash
 git clone https://github.com/arshia8058/SubTube.git

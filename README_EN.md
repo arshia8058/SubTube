@@ -41,7 +41,24 @@ Persian README (main): [README.md](README.md) · Full Persian docs live in [`doc
 Cloudflare Workers (JavaScript ES modules) · Queues · D1 (SQLite) · KV ·
 Telegram Bot API · Supadata · Coarena · Google Gemini · Google Translate
 
-## Quick start
+## Quick start — automatic installer (recommended)
+
+A dependency-free Python script runs on your own machine, takes a Cloudflare
+API token, and builds everything itself (D1 + schema, KV, queue + consumer,
+the Worker with all bindings, secrets, the Telegram webhook and command menu):
+
+```bash
+git clone https://github.com/arshia8058/SubTube.git
+cd SubTube
+python3 installer/install.py
+```
+
+Details: [`installer/README_FA.md`](installer/README_FA.md) (Persian).
+`--dry-run` prints the plan without changing anything; `--self-test` runs its
+offline checks. Tokens and keys are read with hidden prompts, kept only in
+memory, and sent only to `api.cloudflare.com` and `api.telegram.org`.
+
+## Quick start — manual (Wrangler)
 
 ```bash
 git clone https://github.com/arshia8058/SubTube.git
