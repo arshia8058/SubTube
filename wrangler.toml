@@ -1,0 +1,38 @@
+# SubTube — تنظیمات Wrangler برای استقرار روی Cloudflare Workers
+# مقادیر شناسه‌ها (database_id و id) نمونه‌اند؛ با شناسه‌های حساب خودتان جایگزین کنید.
+# سکرت‌ها را هرگز اینجا ننویسید؛ با «wrangler secret put» تنظیم می‌شوند (docs/CONFIG_FA.md).
+
+name = "subtube-bot"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+usage_model = "standard"
+
+# متغیرهای ساده (غیرمحرمانه) — پیش‌فرض‌های داخل کد هم همین‌ها هستند
+[vars]
+MAX_CUE_COUNT = "1200"
+MAX_TOTAL_CHARS = "45000"
+RATE_LIMIT_MAX_PER_HOUR = "10"
+# TRANSLATION_PROVIDER = "coarena"   # اختیاری؛ تنظیم داخل دیتابیس (جدول settings) اولویت دارد
+# TRANSLATION_MODEL = "gemini-4-argon" # اختیاری؛ تنظیم داخل دیتابیس اولویت دارد
+
+# دیتابیس D1 — ساخت: wrangler d1 create subtube-db
+[[d1_databases]]
+binding = "DB"
+database_name = "subtube-db"
+database_id = "YOUR_D1_DATABASE_ID"
+
+# کش KV — ساخت: wrangler kv namespace create SUBTITLE_CACHE
+[[kv_namespaces]]
+binding = "SUBTITLE_CACHE"
+id = "YOUR_KV_NAMESPACE_ID"
+
+# صف پردازش — ساخت: wrangler queues create subtube-jobs
+# پردازش‌های طولانی داخل مصرف‌کننده صف اجرا می‌شوند (سقف ۱۵ دقیقه)، نه داخل وبهوک.
+[[queues.producers]]
+binding = "JOB_QUEUE"
+queue = "subtube-jobs"
+
+[[queues.consumers]]
+queue = "subtube-jobs"
+max_batch_size = 1
+max_retries = 2

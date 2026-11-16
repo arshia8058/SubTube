@@ -1,0 +1,19 @@
+# سکرت‌ها و فایل‌های محلی — هرگز commit نکنید
+.env
+.env.*
+!.env.example
+.diag_token
+*.multipart
+settings_*.json
+telemetry_query.json
+
+# وابستگی‌ها و خروجی Wrangler
+node_modules/
+.wrangler/
+dist/
+
+# اسنپ‌شات‌های پشتیبان و فایل‌های موقت
+index_backup_*.js
+*.map
+__pycache__/
+*.log
