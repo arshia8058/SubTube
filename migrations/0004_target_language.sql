@@ -1,0 +1,11 @@
+-- Selectable subtitle target language (Arshia's pick #6, 2026-11-20).
+--
+-- users.language holds the Telegram UI language_code (written by
+-- upsertUser from the Telegram profile) and is unrelated to subtitles,
+-- so the persistent subtitle target gets its own column. Existing rows
+-- take the 'fa' default — exactly the historical behavior, since every
+-- job used to be created with target_language 'fa' (the jobs table has
+-- carried that column since 0001). The Worker also self-heals this
+-- column at runtime (ensureSubtitleLangColumn); this file is the
+-- migration of record.
+ALTER TABLE users ADD COLUMN subtitle_lang TEXT NOT NULL DEFAULT 'fa';

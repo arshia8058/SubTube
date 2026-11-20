@@ -1,56 +1,85 @@
--- SubTube — ساختار دیتابیس D1 (SQLite)
--- =====================================================
--- این فایل از روی کوئری‌های واقعی داخل سورس (src/index.js) بازسازی شده است؛
--- یعنی دقیقاً همان جدول‌ها و ستون‌هایی که کد استفاده می‌کند.
--- اجرا:  wrangler d1 execute <DB_NAME> --remote --file=migrations/schema.sql
--- یا در داشبورد Cloudflare: D1 → دیتابیس شما → Console → چسباندن همین متن.
+-- SubTube — طرح کامل فعلی دیتابیس D1 (برای نصب تازه)
+-- این فایل وضعیت نهایی همه مهاجرت‌ها (0001 تا 0004) است؛ نصب‌کننده
+-- (installer/install.py) همین فایل را اجرا می‌کند. برای دیتابیس‌های
+-- موجود، مهاجرت‌های شماره‌دار را به ترتیب اجرا کنید.
 
--- کاربران ربات
 CREATE TABLE IF NOT EXISTS users (
-  telegram_id    INTEGER PRIMARY KEY,          -- شناسه عددی کاربر در تلگرام
-  username       TEXT,                          -- نام کاربری تلگرام (ممکن است خالی باشد)
-  first_name     TEXT,                          -- نام نمایشی کاربر
-  language       TEXT DEFAULT 'fa',             -- زبان کاربر در تلگرام
-  created_at     TEXT,                          -- زمان اولین استفاده (ISO, UTC)
-  last_active_at TEXT                           -- زمان آخرین فعالیت (ISO, UTC)
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  telegram_id INTEGER NOT NULL UNIQUE,
+  username TEXT,
+  first_name TEXT,
+  language TEXT DEFAULT 'fa',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+  last_active_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+  is_blocked INTEGER NOT NULL DEFAULT 0,
+  blocked_at TEXT,
+  subtitle_lang TEXT NOT NULL DEFAULT 'fa'
 );
 
--- پردازش‌ها (هر ردیف = یک درخواست ترجمه زیرنویس)
 CREATE TABLE IF NOT EXISTS jobs (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  telegram_id     INTEGER NOT NULL,             -- صاحب درخواست
-  video_id        TEXT NOT NULL,                -- شناسه ۱۱کاراکتری ویدیوی یوتیوب
-  video_url       TEXT,                         -- لینک استاندارد ویدیو
-  source_language TEXT DEFAULT 'en',            -- زبان زیرنویس مبدأ
-  target_language TEXT DEFAULT 'fa',            -- زبان مقصد (فارسی)
-  status          TEXT NOT NULL DEFAULT 'processing',  -- processing | completed | failed
-  error_message   TEXT,                         -- دلیل خطا (کوتاه و پاک‌سازی‌شده)
-  created_at      TEXT,                         -- زمان ساخت (ISO, UTC)
-  completed_at    TEXT                          -- زمان پایان (ISO, UTC)
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  telegram_id INTEGER NOT NULL,
+  video_id TEXT NOT NULL,
+  video_url TEXT NOT NULL,
+  source_language TEXT NOT NULL DEFAULT 'en',
+  target_language TEXT NOT NULL DEFAULT 'fa',
+  status TEXT NOT NULL CHECK (status IN ('processing', 'completed', 'failed')),
+  error_message TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+  completed_at TEXT,
+  provider TEXT,
+  model TEXT,
+  cue_count INTEGER
 );
-CREATE INDEX IF NOT EXISTS idx_jobs_user_created ON jobs (telegram_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_jobs_user_video_status ON jobs (telegram_id, video_id, status);
 
--- آمار تجمیعی هر کاربر
 CREATE TABLE IF NOT EXISTS user_stats (
-  telegram_id     INTEGER PRIMARY KEY,
-  total_jobs      INTEGER NOT NULL DEFAULT 0,   -- کل درخواست‌ها
-  successful_jobs INTEGER NOT NULL DEFAULT 0,   -- موفق‌ها
-  failed_jobs     INTEGER NOT NULL DEFAULT 0,   -- ناموفق‌ها
-  last_job_at     TEXT                          -- زمان آخرین درخواست (ISO, UTC)
+  telegram_id INTEGER PRIMARY KEY,
+  total_jobs INTEGER NOT NULL DEFAULT 0,
+  successful_jobs INTEGER NOT NULL DEFAULT 0,
+  failed_jobs INTEGER NOT NULL DEFAULT 0,
+  last_job_at TEXT
 );
 
--- تنظیمات کلیدی ربات (key/value) — کد این کلیدها را می‌خواند:
---   translation_provider : ارائه‌دهنده ترجمه (مثلاً coarena یا gemini)
---   translation_model    : مدل ترجمه (مثلاً gemini-4-argon)
---   bot_enabled          : روشن/خاموش بودن ربات ('true' / 'false')
---   rate_limit_per_hour  : سقف درخواست ساعتی هر کاربر (عدد)
 CREATE TABLE IF NOT EXISTS settings (
-  key   TEXT PRIMARY KEY,
-  value TEXT
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 
--- نمونه تنظیمات اولیه (اختیاری — مقادیر پیش‌فرض کد هم بدون این ردیف‌ها کار می‌کند):
--- INSERT OR IGNORE INTO settings (key, value) VALUES ('bot_enabled', 'true');
--- INSERT OR IGNORE INTO settings (key, value) VALUES ('translation_provider', 'coarena');
--- INSERT OR IGNORE INTO settings (key, value) VALUES ('translation_model', 'gemini-4-argon');
+CREATE TABLE IF NOT EXISTS link_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  telegram_id INTEGER NOT NULL,
+  username TEXT,
+  first_name TEXT,
+  url TEXT NOT NULL,
+  domain TEXT,
+  source TEXT,
+  outcome TEXT NOT NULL DEFAULT 'received',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  token_hash TEXT PRIMARY KEY,
+  csrf_token TEXT NOT NULL,
+  username TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL,
+  ip TEXT,
+  user_agent TEXT
+);
+
+CREATE TABLE IF NOT EXISTS admin_login_attempts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ip TEXT NOT NULL,
+  username TEXT,
+  success INTEGER NOT NULL DEFAULT 0,
+  attempted_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS platform_users (
+  platform TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  uid INTEGER NOT NULL UNIQUE,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+  PRIMARY KEY (platform, external_id)
+);

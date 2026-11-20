@@ -90,23 +90,23 @@ for (const mode of ["ok-wrapped", "ok-bare-array", "prose-wrapped", "retry-429",
   assert.strictEqual(usage.provider, "coarena");
   assert.strictEqual(usage.model, "claude-sonnet-5-5");
   if (mode === "ok-wrapped") {
-    assert.strictEqual(usage.chunksByProvider.coarena, 2, "both chunks via coarena");
-    assert.strictEqual(usage.requests, 2);
-    assert.strictEqual(usage.totalTokens, 300, "usage tokens accumulated");
+    assert.strictEqual(usage.chunksByProvider.coarena, usage.progress.chunksTotal, "all chunks via coarena");
+    assert.strictEqual(usage.requests, usage.progress.chunksTotal);
+    assert.strictEqual(usage.totalTokens, 150 * usage.progress.chunksTotal, "usage tokens accumulated");
     console.log("  usage accounting: PASS", JSON.stringify(usage));
   }
   if (mode === "retry-429") {
     assert.ok(usage.retries >= 2, "retries recorded");
-    assert.strictEqual(usage.chunksByProvider.coarena, 2);
+    assert.strictEqual(usage.chunksByProvider.coarena, usage.progress.chunksTotal);
     console.log("  retry with backoff: PASS (retries=" + usage.retries + ", requests=" + usage.requests + ")");
   }
   if (mode === "missing-id") {
     assert.strictEqual(usage.chunksByProvider.coarena, undefined, "invalid output must not be used");
-    assert.strictEqual(usage.chunksByProvider.gemini, 2, "fell back to gemini per chunk");
+    assert.strictEqual(usage.chunksByProvider.gemini, usage.progress.chunksTotal, "fell back to gemini per chunk");
     console.log("  invalid output rejected, gemini fallback: PASS");
   }
   if (mode === "auth") {
-    assert.strictEqual(usage.chunksByProvider.gemini, 2, "auth failure disables coarena, gemini used");
+    assert.strictEqual(usage.chunksByProvider.gemini, usage.progress.chunksTotal, "auth failure disables coarena, gemini used");
     console.log("  auth fallback: PASS");
   }
 }

@@ -9,11 +9,16 @@ usage_model = "standard"
 
 # متغیرهای ساده (غیرمحرمانه) — پیش‌فرض‌های داخل کد هم همین‌ها هستند
 [vars]
-MAX_CUE_COUNT = "1200"
-MAX_TOTAL_CHARS = "45000"
+MAX_CUE_COUNT = "2500"
+MAX_TOTAL_CHARS = "90000"
 RATE_LIMIT_MAX_PER_HOUR = "10"
 # TRANSLATION_PROVIDER = "coarena"   # اختیاری؛ تنظیم داخل دیتابیس (جدول settings) اولویت دارد
-# TRANSLATION_MODEL = "gemini-4-argon" # اختیاری؛ تنظیم داخل دیتابیس اولویت دارد
+# TRANSLATION_MODEL = "gpt-6-luna"   # اختیاری؛ تنظیم داخل دیتابیس اولویت دارد
+# RUBIKA_WEBHOOK_SECRET = "..."      # فقط برای جبهه روبیکا؛ مقدار واقعی را اینجا ننویسید
+
+# هوش مصنوعی Cloudflare — برای رونویسی فایل‌های آپلودی (Whisper)
+[ai]
+binding = "AI"
 
 # دیتابیس D1 — ساخت: wrangler d1 create subtube-db
 [[d1_databases]]

@@ -50,7 +50,7 @@ deploy/settings snapshots are gitignored and must never be committed.
 ## Protected invariants (never silently change)
 - Translation model: coarena / gemini-4-argon (D1 settings) — only on
   Arshia's explicit request.
-- Gemini-path candidate order: gemini-3.6-flash first (his choice).
+- Gemini-path candidate order: gemini-3.1-flash-lite first (his choice since 2026-11-18; fastest in the live probe).
 - Cache key versions (cap2:, fa2:) — bump, never repurpose.
 - Webhook allowed_updates must include callback_query (buttons depend on it).
 - /_diag stays DIAG_TOKEN-gated; webhook stays fail-closed.

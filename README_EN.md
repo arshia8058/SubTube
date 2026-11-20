@@ -30,11 +30,22 @@ Persian README (main): [README.md](README.md) · Full Persian docs live in [`doc
   can never scramble; a final validation pass refuses to ship a broken file
 - Live progress in Telegram + a per-job web page (`/p/<token>`)
 - 48-hour translation cache in KV; repeat links answer instantly
-- Three-step file delivery ladder (download link → direct upload → text chunks)
-  for days when Telegram's media ingress is degraded
+- Three-step file delivery ladder (send-by-URL → direct upload → one message
+  with a download link) for days when Telegram's media ingress is degraded
+- Multi-source links: TikTok, Instagram, X and Facebook alongside YouTube
+- AI subtitle generation for caption-less videos (opt-in button; it spends
+  transcription quota)
+- "Re-translate with another model" button after every delivery
+- Direct video/audio file upload (up to 20 MB), transcribed with Whisper on
+  Cloudflare Workers AI
+- Selectable subtitle target language via `/lang` (fa, en, ar, tr, ru, es,
+  fr, de)
+- A second front-end on **Rubika** with the same pipeline (see RUBIKA_PLAN.md)
+- Web admin panel: dashboard, activity/translation reports, user blocking,
+  link analytics (see ADMIN_PANEL.md)
 - Per-user hourly rate limit, duplicate-job guard, `/cancel` support
 - Commands: `/start` `/translate` `/status` `/history` `/usage` `/stats`
-  `/help` `/about` `/cancel`
+  `/lang` `/help` `/about` `/cancel`
 
 ## Tech stack
 
@@ -85,9 +96,11 @@ variable are documented in [`docs/CONFIG_FA.md`](docs/CONFIG_FA.md).
 - `src/index.js` — the complete Worker source, published exactly as it runs
   (a bundled single module; internal sections are marked with `// src/...`
   comments that map to the original modules)
-- `migrations/schema.sql` — the D1 schema, reconstructed from the actual
-  queries in the code (`users`, `jobs`, `user_stats`, `settings`)
-- `tests/` — 12 offline test suites; run `node tests/make_test_bundle.mjs`
+- `migrations/schema.sql` — the full current D1 schema for fresh installs,
+  plus the numbered migrations `0001`–`0004` for existing databases
+- `admin_src/` — the web admin panel frontend sources
+  (+ `build_admin_assets.py`)
+- `tests/` — 21 offline test suites; run `node tests/make_test_bundle.mjs`
   first, then each `tests/test_*.mjs`
 - `tools/deploy.py` — an alternative, sanitized deploy helper using the
   Cloudflare API directly (Wrangler is the recommended path)
